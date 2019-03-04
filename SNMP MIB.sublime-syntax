@@ -1,0 +1,59 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+file_extensions:
+  - mib
+scope: text.snmpmib
+
+contexts:
+  # The prototype context is prepended to all contexts but those setting
+  # meta_include_prototype: false.
+  prototype:
+    - include: comments
+
+  main:
+    - match: \b(Counter32|Gauge32|IpAddress|Unsigned32|DisplayString|read-only|current)\b
+      scope: keyword.mib.string
+    # The main context is the initial starting point of our syntax.
+    # Include other contexts from here (or specify them directly).
+    - include: keywords
+    - include: numbers
+    - include: strings
+
+  keywords:
+    # Keywords are if, else for and while.
+    # Note that blackslashes don't need to be escaped within single quoted
+    # strings in YAML. When using single quoted strings, only single quotes
+    # need to be escaped: this is done by using two single quotes next to each
+    # other.
+    - match: \b(DEFINITIONS|BEGIN|IMPORTS|FROM|OBJECT-TYPE|OBJECT|IDENTIFIER|MODULE-IDENTITY|SYNTAX|ACCESS|STATUS|DESCRIPTION)\b
+      scope: keyword.control.snmpmib
+
+  numbers:
+    - match: '\b(-)?[0-9.]+\b'
+      scope: constant.numeric.snmpmib
+
+  strings:
+    # Strings begin and end with quotes, and use backslashes as an escape
+    # character.
+    - match: '"'
+      scope: punctuation.definition.string.begin.snmpmib
+      push: inside_string
+
+  inside_string:
+    - meta_include_prototype: false
+    - meta_scope: string.quoted.double.snmpmib
+    - match: '\.'
+      scope: constant.character.escape.snmpmib
+    - match: '"'
+      scope: punctuation.definition.string.end.snmpmib
+      pop: true
+
+  comments:
+    - match: --.*
+      scope: punctuation.definition.comment.snmpmib
+      push:
+        # This is an anonymous context push for brevity.
+        - meta_scope: comment.line.double-dash.snmpmib
+        - match: $\n?
+          pop: true

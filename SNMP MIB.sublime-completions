@@ -1,5 +1,5 @@
 {
-   "scope": ["text.mib - string - meta.tag, punctuation.definition.tag.begin"],
+   "scope": "text.snmpmib - string",
 
    "completions":
    [
