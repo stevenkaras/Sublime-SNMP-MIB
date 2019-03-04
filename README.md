@@ -13,7 +13,7 @@ A Sublime Text 3 extension for SNMP MIB files.
 
 * Bring up the Command Palette (Cmd + Shift + P on OS X, Ctrl + Shift + P on Windows).
 * Select `Package Control: Install Package`
-* Select `SNMP MIB` when the list appears.
+* Select `SNMP MIB Syntax` when the list appears.
 * Package Control will automatically keep SNMP MIB up to date with the latest version.
 
 ### Manual Install
