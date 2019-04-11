@@ -14,11 +14,52 @@ contexts:
   main:
     - match: \b(Counter32|Gauge32|IpAddress|Unsigned32|DisplayString|read-only|current)\b
       scope: keyword.mib.string
+    - match: '\b(DEFINITIONS)\b\s+::=\s+\b(BEGIN)\b'
+      captures:
+        1: keyword.snmpmib
+        2: keyword.snmpmib
+      push: module
     # The main context is the initial starting point of our syntax.
     # Include other contexts from here (or specify them directly).
     - include: keywords
     - include: numbers
     - include: strings
+
+  module:
+    - meta_content_scope: meta.definitions.snmpmib
+    - match: '\b(IMPORTS)\b'
+      scope: keyword.snmpmib
+      push: imports
+    - match: '\b(MODULE-IDENTITY)\b'
+      scope: keyword.snmpmib
+      push: identity
+    - match: '\b(OBJECT IDENTIFIER)\b'
+      scope: keyword.snmpmib
+      push: object_identifier
+    - match: '\b(OBJECT-TYPE)\b'
+      scope: keyword.snmpmib
+      push: object_type
+    - match: '\b(END)\b'
+      pop: true
+
+  imports:
+    - meta_content_scope: meta.imports.snmpmib
+    - match: ';'
+      pop: true
+
+  identity:
+    - meta_content_scope: meta.identity.snmpmib
+    - match: '::='
+      pop: true
+
+  object_identifier:
+    - match: '::='
+      pop: true
+
+  object_type:
+    - meta_content_scope: meta.object_type.snmpmib
+    - match: '::='
+      pop: true
 
   keywords:
     # Keywords are if, else for and while.
