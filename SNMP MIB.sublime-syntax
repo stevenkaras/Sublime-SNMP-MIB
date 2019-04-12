@@ -8,6 +8,11 @@ scope: text.snmpmib
 variables:
   descriptor: '[a-z][a-zA-Z0-9]*'
   module_name: '[A-Z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*'
+  base_type: '(INTEGER|OCTET STRING|OBJECT IDENTIFIER|Integer32|IpAddress|Counter32|Gauge32|Unsigned32|TimeTicks|Opaque|Counter64)'
+  dec: '[-]?\d+'
+  hex: "\'[0-9a-fA-F]+\'H"
+  bin: "\'[0|1]+\'B"
+  number: '(({{dec}})|({{hex}})|({{bin}}))'
 
 contexts:
   # The prototype context is prepended to all contexts but those setting
@@ -46,8 +51,11 @@ contexts:
         1: entity.name.constant.snmpmib
         2: keyword.snmpmib
       push: obj_ident_assignment
-    - match: '\b(OBJECT-TYPE)\b'
+    - match: '\b({{descriptor}})\s+(OBJECT-TYPE)\b'
       scope: keyword.snmpmib
+      captures:
+        1: entity.name.type.snmpmib
+        2: keyword.snmpmib
       push: object_type
     - match: '\b(END)\b'
       pop: true
@@ -81,8 +89,116 @@ contexts:
       set: object_ident_list
 
   object_type:
-    - meta_content_scope: meta.object_type.snmpmib
-    - match: '::='
+    - meta_content_scope: meta.type.snmpmib
+    - match: '\b(SYNTAX|UNITS|MAX-ACCESS|STATUS|DESCRIPTION|REFERENCE)\b'
+      scope: variable.parameter.snmpmib
+    - match: '(INDEX)\s*({)'
+      captures:
+        1: variable.parameter.snmpmib
+        2: punctuation.section.braces.begin.snmpmib
+      push: index
+    - match: '(AUGMENTS)\s*({)'
+      captures:
+        1: variable.parameter.snmpmib
+        2: punctuation.section.braces.begin.snmpmib
+      push: augments
+    - match: '(DEFVAL)\s*({)'
+      captures:
+        1: variable.parameter.snmpmib
+        2: punctuation.section.braces.begin.snmpmib
+      push: defval
+    # matching values for SYNTAX // TODO textual convention
+    - match: '\b{{base_type}}\b'
+      scope: storage.type.snmpmib
+    - match: '(BITS)\s*({)'
+      captures:
+        1: storage.type.enum.snmpmib
+        2: punctuation.section.braces.begin.snmpmib
+      push: bits_type
+    - match: '\('
+      scope: punctuation.section.parens.begin.snmpmib
+      push: refinement
+    # matching values for MAX-ACCESS
+    - match: '\b(not-accessible|accessible-for-notify|read-only|read-write|read-create)\b'
+      scope: constant.language.snmpmib
+    # matching values for STATUS
+    - match: '\b(current|deprecated|obsolete)\b'
+      scope: constant.language.snmpmib
+    # matching values for UNITS, DESCRIPTION, REFERENCE
+    - include: strings
+    # matching values for MAX-ACCESS
+    - match: '(::=)\s*({)'
+      captures:
+        1: keyword.operator.assignment.snmpmib
+        2: punctuation.definition.snmpmib
+      set: object_ident_list
+
+  bits_type:
+    - meta_content_scope: meta.braces.snmpmib
+    - match: '({{descriptor}})\s*\((\d+)\)'
+      captures:
+        1: variable.other.constant.snmpmib
+        2: constant.numeric.integer.decimal.snmpmib
+    - match: '}'
+      scope: punctuation.section.braces.end.snmpmib
+      pop: true
+
+  index:
+    - meta_content_scope: meta.braces.snmpmib
+    - match: '{{descriptor}}'
+      scope: variable.other.constant.snmpmib
+    - match: '}'
+      scope: punctuation.section.braces.end.snmpmib
+      pop: true
+
+  augments:
+    - meta_content_scope: meta.braces.snmpmib
+    - match: '{{descriptor}}'
+      scope: variable.other.constant.snmpmib
+    - match: '}'
+      scope: punctuation.section.braces.end.snmpmib
+      pop: true
+
+  defval:
+    - meta_content_scope: meta.braces.snmpmib
+    - match: '{{descriptor}}'
+      scope: variable.other.constant.snmpmib
+    - match: '\d+'
+      scope: constant.numeric.integer.decimal.snmpmib
+    - include: strings
+    - match: '}'
+      scope: punctuation.section.braces.end.snmpmib
+      pop: true
+
+  refinement:
+    - meta_content_scope: meta.parens.refinement.snmpmib
+    - match: '\b(SIZE)\s*(\()'
+      captures:
+        1: keyword.declaration.snmpmib
+        2: punctuation.section.parens.begin.snmpmib
+      push: ranges
+    - include: ranges
+    - match: '\)'
+      scope: punctuation.section.parens.end.snmpmib
+      pop: true
+
+  ranges:
+    - match: '(({{dec}})|({{hex}})|({{bin}}))\.\.{{number}}|{{number}}'
+      captures:
+        # 1: # generic number
+        2: constant.numeric.integer.decimal.snmpmib
+        3: constant.numeric.integer.hexadecimal.snmpmib
+        4: constant.numeric.integer.binary.snmpmib
+        # 5: # generic value
+        6: constant.numeric.integer.decimal.snmpmib
+        7: constant.numeric.integer.hexadecimal.snmpmib
+        8: constant.numeric.integer.binary.snmpmib
+        # 9: # generic value
+        10: constant.numeric.integer.decimal.snmpmib
+        11: constant.numeric.integer.hexadecimal.snmpmib
+        12: constant.numeric.integer.binary.snmpmib
+    - match: '\)'
+      scope: punctuation.section.parens.end.snmpmib
       pop: true
 
   object_ident_list:
