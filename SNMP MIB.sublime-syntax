@@ -6,6 +6,7 @@ file_extensions:
 scope: text.snmpmib
 
 variables:
+  descriptor: '[a-z][a-zA-Z0-9]*'
   module_name: '[A-Z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*'
 
 contexts:
@@ -35,8 +36,10 @@ contexts:
     - match: '\b(IMPORTS)\b'
       scope: keyword.snmpmib
       push: imports
-    - match: '\b(MODULE-IDENTITY)\b'
-      scope: keyword.snmpmib
+    - match: '({{descriptor}})\s+(MODULE-IDENTITY)\b'
+      captures:
+        1: entity.name.snmpmib
+        2: keyword.snmpmib
       push: identity
     - match: '\b(OBJECT IDENTIFIER)\b'
       scope: keyword.snmpmib
@@ -54,8 +57,19 @@ contexts:
 
   identity:
     - meta_content_scope: meta.identity.snmpmib
-    - match: '::='
-      pop: true
+    - match: '(LAST-UPDATED|ORGANIZATION|CONTACT-INFO|DESCRIPTION|REVISION|DESCRIPTION)'
+      scope: variable.parameter.snmpmib
+    - match: '(")(\d{10}Z|\d{12}Z)(")'
+      captures:
+        1: punctuation.definition.string.begin.snmpmib
+        2: constant.other.datetime.snmpmib
+        3: punctuation.definition.string.end.snmpmib
+    - include: strings
+    - match: '(::=)\s*({)'
+      captures:
+        1: keyword.operator.assignment.snmpmib
+        2: punctuation.definition.snmpmib
+      set: object_ident_list
 
   object_identifier:
     - match: '::='
@@ -64,6 +78,16 @@ contexts:
   object_type:
     - meta_content_scope: meta.object_type.snmpmib
     - match: '::='
+      pop: true
+
+  object_ident_list:
+    - meta_content_scope: meta.sequence.object_identifier_list.snmpmib
+    - match: '{{descriptor}}'
+      scope: variable.other.constant.snmpmib
+    - match: '\d+'
+      scope: constant.numeric.integer.decimal.snmpmib
+    - match: '}'
+      scope: punctuation.definition.snmpmib
       pop: true
 
   keywords:
@@ -89,7 +113,7 @@ contexts:
   inside_string:
     - meta_include_prototype: false
     - meta_scope: string.quoted.double.snmpmib
-    - match: '\.'
+    - match: '\\.'
       scope: constant.character.escape.snmpmib
     - match: '"'
       scope: punctuation.definition.string.end.snmpmib
