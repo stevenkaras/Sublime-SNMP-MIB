@@ -41,9 +41,11 @@ contexts:
         1: entity.name.snmpmib
         2: keyword.snmpmib
       push: identity
-    - match: '\b(OBJECT IDENTIFIER)\b'
-      scope: keyword.snmpmib
-      push: object_identifier
+    - match: '\b({{descriptor}})\s+(OBJECT IDENTIFIER)\b'
+      captures:
+        1: entity.name.constant.snmpmib
+        2: keyword.snmpmib
+      push: obj_ident_assignment
     - match: '\b(OBJECT-TYPE)\b'
       scope: keyword.snmpmib
       push: object_type
@@ -71,9 +73,12 @@ contexts:
         2: punctuation.definition.snmpmib
       set: object_ident_list
 
-  object_identifier:
-    - match: '::='
-      pop: true
+  obj_ident_assignment:
+    - match: '(::=)\s*({)'
+      captures:
+        1: keyword.operator.assignment.snmpmib
+        2: punctuation.definition.snmpmib
+      set: object_ident_list
 
   object_type:
     - meta_content_scope: meta.object_type.snmpmib
