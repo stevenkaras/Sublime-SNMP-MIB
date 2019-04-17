@@ -121,6 +121,10 @@ contexts:
         1: storage.type.enum.snmpmib
         2: punctuation.section.braces.begin.snmpmib
       push: bits_type
+    - match: '(SEQUENCE OF)\s+({{type_name}})'
+      captures:
+        1: keyword.other.snmpmib
+        2: variable.other.constant.snmpmib
     - match: '\('
       scope: punctuation.section.parens.begin.snmpmib
       push: refinement
