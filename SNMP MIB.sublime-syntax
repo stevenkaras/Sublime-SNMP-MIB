@@ -7,6 +7,7 @@ scope: text.snmpmib
 
 variables:
   descriptor: '[a-z][a-zA-Z0-9]*'
+  type_name: '[A-Z][a-zA-Z0-9]*'
   module_name: '[A-Z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*'
   base_type: '(INTEGER|OCTET STRING|OBJECT IDENTIFIER|Integer32|IpAddress|Counter32|Gauge32|Unsigned32|TimeTicks|Opaque|Counter64)'
   dec: '[-]?\d+'
@@ -57,6 +58,11 @@ contexts:
         1: entity.name.type.snmpmib
         2: keyword.snmpmib
       push: object_type
+    - match: '({{type_name}})\s*::=\s*(SEQUENCE)\b'
+      captures:
+        1: entity.name.type.snmpmib
+        2: keyword.declaration.snmpmib
+      push: sequence
     - match: '\b(END)\b'
       pop: true
 
@@ -209,6 +215,19 @@ contexts:
       scope: constant.numeric.integer.decimal.snmpmib
     - match: '}'
       scope: punctuation.definition.snmpmib
+      pop: true
+
+  sequence:
+    - meta_content_scope: meta.sequence.snmpmib
+    - match: '{'
+      scope: punctuation.section.braces.begin.snmpmib
+    - match: '({{descriptor}})\s+({{base_type}}|({{type_name}}))'
+      captures:
+        1: variable.other.constant.snmpmib
+        3: storage.type.snmpmib
+        4: variable.other.constant.snmpmib
+    - match: '}'
+      scope: punctuation.section.braces.end.snmpmib
       pop: true
 
   keywords:
