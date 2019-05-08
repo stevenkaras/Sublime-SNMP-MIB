@@ -63,6 +63,10 @@ contexts:
         1: entity.name.type.snmpmib
         2: keyword.declaration.snmpmib
       push: sequence
+    - match: '({{type_name}})\s*::=\s*(TEXTUAL-CONVENTION)'
+      captures:
+        1: entity.name.type.snmpmib
+        2: keyword.declaration.snmpmib
     - match: '\b(END)\b'
       pop: true
 
